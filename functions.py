@@ -102,11 +102,11 @@ def reddit_auth():  # LOGIN AUTHENTICATION
 
             # ATTEMPT TO AUTHENTICATE
             try:
-                reddit = praw.Reddit(client_id='',
-                                     client_secret='',
+                reddit = praw.Reddit(client_id='REPLACE',
+                                     client_secret='REPLACE',
                                      username=username,  # base64.b64decode(username)
                                      password=password,  # base64.b64decode(password)
-                                     user_agent='Reposter')
+                                     user_agent='REPLACE')
 
                 user = reddit.user.me()
                 if user is not None:
@@ -170,11 +170,11 @@ def reddit_auth():  # LOGIN AUTHENTICATION
 
                 # TRY TO AUTHENTICATE
                 try:
-                    reddit = praw.Reddit(client_id='',  # ENTER CLIENT ID
-                                         client_secret='',  # ENTER CLIENT SECRET
+                    reddit = praw.Reddit(client_id='REPLACE',  # ENTER CLIENT ID
+                                         client_secret='REPLACE',  # ENTER CLIENT SECRET
                                          username=username,  # base64.b64decode(username)
                                          password=password,  # base64.b64decode(password)
-                                         user_agent='')  # ENTER NAME OF APP
+                                         user_agent='REPLACE')  # ENTER NAME OF APP
 
                     user = reddit.user.me()
                     if user is not None:

@@ -276,7 +276,7 @@ def view_all(subreddit):
 
 def repost_post(selected_post, r):
     # GET SUBREDDIT TO REPOST TO
-    subreddit_name = ''  # input("Enter subreddit to repost to: ")  # ENTER A SUBREDDIT
+    subreddit_name = 'REPLACE'  # input("Enter subreddit to repost to: ")  # ENTER A SUBREDDIT
     subreddit = r.subreddit(subreddit_name)
 
     # CREATE A MARKDOWN FILE

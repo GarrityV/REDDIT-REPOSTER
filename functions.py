@@ -321,7 +321,7 @@ def repost_post(selected_post, r):
 
 def repost_image(r, image_file_path=None):
     # GET SUBREDDIT TO REPOST TO
-    subreddit_name = ''  # input("Enter subreddit to repost to: ")  # ENTER A SUBREDDIT
+    subreddit_name = input("Enter subreddit to repost to: ")  # ENTER A SUBREDDIT
     subreddit = r.subreddit(subreddit_name)
 
     # GET NEW TITLE FOR REPOST

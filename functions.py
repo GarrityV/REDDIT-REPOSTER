@@ -9,6 +9,10 @@ import mimetypes
 import json
 import menus
 
+c_id = 'REPLACE' # CLIENT ID
+c_secret = 'REPLACE' # CLIENT SECRET 
+ua_name = 'REPLACE' # APP NAME
+
 
 def view_post(p):  # FUNCTION PART OF view_all()
     file_path = None
@@ -102,11 +106,11 @@ def reddit_auth():  # LOGIN AUTHENTICATION
 
             # ATTEMPT TO AUTHENTICATE
             try:
-                reddit = praw.Reddit(client_id='REPLACE',
-                                     client_secret='REPLACE',
+                reddit = praw.Reddit(client_id=c_id,
+                                     client_secret=c_secret,
                                      username=username,  # base64.b64decode(username)
                                      password=password,  # base64.b64decode(password)
-                                     user_agent='REPLACE')
+                                     user_agent=ua_name)
 
                 user = reddit.user.me()
                 if user is not None:
@@ -170,11 +174,11 @@ def reddit_auth():  # LOGIN AUTHENTICATION
 
                 # TRY TO AUTHENTICATE
                 try:
-                    reddit = praw.Reddit(client_id='REPLACE',  # ENTER CLIENT ID
-                                         client_secret='REPLACE',  # ENTER CLIENT SECRET
+                    reddit = praw.Reddit(client_id=c_id,  # ENTER CLIENT ID
+                                         client_secret=c_secret,  # ENTER CLIENT SECRET
                                          username=username,  # base64.b64decode(username)
                                          password=password,  # base64.b64decode(password)
-                                         user_agent='REPLACE')  # ENTER NAME OF APP
+                                         user_agent=ua_name)  # ENTER NAME OF APP
 
                     user = reddit.user.me()
                     if user is not None:
@@ -276,7 +280,7 @@ def view_all(subreddit):
 
 def repost_post(selected_post, r):
     # GET SUBREDDIT TO REPOST TO
-    subreddit_name = 'REPLACE'  # input("Enter subreddit to repost to: ")  # ENTER A SUBREDDIT
+    subreddit_name = input("Enter subreddit to repost to: ")  # ENTER A SUBREDDIT
     subreddit = r.subreddit(subreddit_name)
 
     # CREATE A MARKDOWN FILE

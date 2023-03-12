@@ -51,8 +51,26 @@ def save_login(user, passwd):
         }
     }
 
+    try:
+        # READ JSON FROM FILE
+        with open('login_info.json', 'r') as f:
+            accounts = json.load(f)
+    except FileNotFoundError:
+        # CREATE NEW JSON FILE
+        print('File login_info.json not found.\n'
+              'Creating new file login_info.json')
+
+        with open('login_info.json', 'w') as f:
+            accounts = {}
+    except json.decoder.JSONDecodeError:
+        # FILE IS EMPTY
+        accounts = {}
+    
+    # ADD NEW ACCOUNT TO EXISTING ACCOUNTS
+    accounts.update(login_info)
+
     # ENCODE DICT AS JSON OBJECT
-    login_json = json.dumps(login_info, indent=4)
+    login_json = json.dumps(accounts, indent=4)
 
     # WRITE JSON OBJECT TO FILE
     with open('login_info.json', 'w') as f:

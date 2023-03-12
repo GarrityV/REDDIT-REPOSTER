@@ -1,7 +1,6 @@
 # REDDIT-REPOSTER
 Simple repost bot for Reddit. For Personal Use.
 
-In functions.py, find 'REPLACE' and replace with necessary component
-**CTRL/CMD+F FOR SEARCH**
+In `functions.py`, replace lines 12-14 with correct information
 
-Run main.py for program to function correctly
+Run `main.py` for program to function correctly

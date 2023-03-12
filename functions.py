@@ -89,23 +89,46 @@ def load_login():
               'Creating new file login_info.json')
 
         with open('login_info.json', 'w') as f:
-            accounts = {}
+            f.write('{}')
+        accounts = {}
     except json.decoder.JSONDecodeError:
         # FILE IS EMPTY
         accounts = {}
 
-    # DECODE JSON AND EXTRACT LOGIN INFO
-    #login_info = json.loads(login_json)
-    #accounts = []
-    #for username, account in login_info.items():
-    #    password = account['password']
-    #    accounts.append({'username': username, 'password': password})
+    return accounts
 
-    account_list = []
-    for username, account in accounts.items():
-        account_list.append(account)
+def remove_login():
+    # Load the accounts
+    accounts = load_login()
 
-    return account_list
+    if len(accounts) == 0:
+        print('No saved accounts found\n')
+        return
+    
+    # Print the accounts to the console
+    print("\n--- SAVED ACCOUNTS ---")
+    for i, account in enumerate(accounts.values()):
+        print(f"{i+1}. {account['username']}")
+
+    # Ask the user to choose which account to remove
+    choice = input("\nEnter the index of the account to remove: ")
+    try:
+        index = int(choice) - 1
+        if 0 <= index < len(accounts):
+            # Remove the account from the list
+            account = list(accounts.values())[index]
+            del accounts[account['username']]
+
+            # Save the updated list of accounts
+            login_json = json.dumps(accounts, indent=4)
+            with open('login_info.json', 'w') as f:
+                f.write(login_json)
+            
+            print(f"Account {account['username']} removed.\n")
+        else:
+            print("Invalid index.")
+    except ValueError:
+        print("Invalid input.")
 
 
 def reddit_auth():  # LOGIN AUTHENTICATION
@@ -168,13 +191,13 @@ def reddit_auth():  # LOGIN AUTHENTICATION
                     accounts = {}
 
             # CHECK IF ACCOUNTS IS EMPTY
-            if not accounts:
+            if len(accounts) == 0:
                 print('No saved accounts found.\n'
-                      'Enter login information.')
+                      'Enter login information.\n')
             else:
                 # DISPLAY SAVED ACCOUNTS
                 print("--- SAVED ACCOUNTS ---")
-                for i, account in enumerate(accounts):
+                for i, account in enumerate(accounts.values()):
                     print(f'[{i + 1}] {account["username"]}')
 
                 # SELECT ACCOUNT
@@ -182,7 +205,7 @@ def reddit_auth():  # LOGIN AUTHENTICATION
                 try:
                     select_account = int(select_account)
                     if (select_account > 0) and (select_account <= len(accounts)):
-                        account = accounts[select_account - 1]
+                        account = list(accounts.values())[select_account - 1]
                         username = account['username']
                         password = account['password']
                 except ValueError:
@@ -205,7 +228,7 @@ def reddit_auth():  # LOGIN AUTHENTICATION
 
                         # CHECK IF LOGIN IS SAVED
                         login_saved = False
-                        for account in accounts:
+                        for account in accounts.values():
                             if account['username'] == username and account['password'] == password:
                                 login_saved = True
                                 break
@@ -223,9 +246,11 @@ def reddit_auth():  # LOGIN AUTHENTICATION
                     access = False
                     print('Error occurred while trying to login.\n'
                           'Have you created a Reddit developer app?')
-        else:
-            print("Invalid choice. Try again.")
-            continue
+        
+        # MENU CHOICE 3
+        elif menu_choice == '3':
+            # REMOVE LOGIN
+            remove_login()
 
     # return reddit object
     return reddit

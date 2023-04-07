@@ -8,13 +8,16 @@ import requests
 import mimetypes
 import json
 import menus
+import os
+import time
+import platform
 
 c_id = 'REPLACE' # CLIENT ID
-c_secret = 'REPLACE' # CLIENT SECRET 
+c_secret = 'REPLACE' # CLIENT SECRET
 ua_name = 'REPLACE' # APP NAME
 
 
-def view_post(p):  # FUNCTION PART OF view_all()
+def view_post(p):  # VIEW SPECIFIED POST
     file_path = None
 
     # DOWNLOAD AND DISPLAY IMAGE IF POST IS IMAGE
@@ -24,22 +27,50 @@ def view_post(p):  # FUNCTION PART OF view_all()
         mime_type = response.headers['content-type']
         file_extension = mimetypes.guess_extension(mime_type)
         image_data = response.content
-        file_path = 'image' + file_extension
+        file_path = p['id'] + file_extension
         with open(file_path, 'wb') as image_file:
             image_file.write(image_data)
 
         # DISPLAY IMAGE
-        img = Image.open('image' + file_extension)
-        img.show()
-        print(p['url'])
+        if file_extension.lower() == '.gif':
+            with Image.open(file_path, mode='r') as img:
+                try:
+                    if platform.system() == 'Darwin':  # macOS
+                        os.system('open "{}"'.format(file_path))
+                    elif platform.system() == 'Windows':  # Windows
+                        os.system('start "" "{}"'.format(file_path))
+                    else:  # Linux and other platforms
+                        os.system('xdg-open "{}"'.format(file_path))
+                    img_open = True
+                except Exception as e:
+                    print(f'Error: {e}')
+                    img_open = False
+        else:
+            with Image.open(file_path, mode='r') as img:
+                img.show()
+                img_open = True
 
-    # DISPLAY POST CONTENTS
-    if file_path:
-        print(f'{p["url"]}')
-    elif p['desc']:
-        print(p['desc'])
-    else:
-        print(p['url'])
+        # DELETE AFTER OPENED
+        if img_open:
+            time.sleep(1)  # wait 1 second before deleting
+            os.remove(file_path)
+        
+    try:
+        # DISPLAY POST CONTENTS
+        if file_path:
+            print(f'{p["title"]}')
+            print(f'{p["desc"]}')
+            print(f'{p["url"]}')
+        elif p['desc']:
+            print(f'{p["title"]}')
+            print(f'{p["desc"]}')
+            print(f'{p["url"]}')
+        else:
+            print(f'{p["title"]}')
+            print(f'{p["desc"]}')
+            print(f'{p["url"]}')
+    except Exception as e:
+        print(f'Error: {e}')
 
 
 def save_login(user, passwd):
@@ -96,6 +127,7 @@ def load_login():
         accounts = {}
 
     return accounts
+
 
 def remove_login():
     # Load the accounts
@@ -252,6 +284,14 @@ def reddit_auth():  # LOGIN AUTHENTICATION
             # REMOVE LOGIN
             remove_login()
 
+        # MENU CHOICE QUIT
+        elif menu_choice.lower() == 'q':
+            break
+        
+        # INVALID INPUT
+        else:
+            print("Invalid input.")
+
     # return reddit object
     return reddit
 
@@ -285,8 +325,9 @@ def view_all(subreddit):
     selected_post = posts[index_view]
     view_post(selected_post)
 
-    repost = input("Repost post? [Y]es/[N]o\n")
-    if repost.lower() == 'y':
+    save_post_input = input("Download post? [Y]es/[N]o\n")
+    if save_post_input.lower() == 'y':
+        
         if selected_post['url'].endswith(('jpg', 'jpeg', 'png', 'gif')):
             # DOWNLOAD IMAGE
             response = requests.get(selected_post['url'])
@@ -296,25 +337,135 @@ def view_all(subreddit):
             file_extension = mimetypes.guess_extension(mime_type)
             image_data = response.content
 
-            # GET PATH TO DOWNLOADED IMAGE
-            file_path = 'image' + file_extension
+            user_file_name = input("Name post file? [Y]es/[N]o\n")
+            if user_file_name.lower() == 'y':  # USER NAMES FILE
+                save_file_name = input("Enter name for file: ")
 
-            # WRITE IMAGE DATA TO IMAGE FILE FOR REPOST
-            with open(file_path, 'wb') as image_file:
-                image_file.write(image_data)
+                # GET PATH TO DOWNLOADED IMAGE
+                file_path = save_file_name + file_extension
 
-            # REPOST IMAGE
-            repost_image(reddit, file_path)
+                # WRITE IMAGE DATA TO IMAGE FILE FOR REPOST
+                with open(file_path, 'wb') as image_file:
+                    image_file.write(image_data)
+
+                try:
+                    print(f"Saving post to current directory ({os.getcwd()}\\{file_path})")
+                except:
+                    print(f"Failed to save post to {os.getcwd()}\\{file_path}")
+            else:
+                # GET PATH TO DOWNLOADED IMAGE
+                file_path = selected_post['id'] + file_extension
+
+                # WRITE IMAGE DATA TO IMAGE FILE FOR REPOST
+                with open(file_path, 'wb') as image_file:
+                    image_file.write(image_data)
+
+                try:
+                    print(f"Saving post to current directory ({os.getcwd()}\\{file_path})")
+                except:
+                    print(f"Failed to save post to {os.getcwd()}\\{file_path}")
+        
         elif selected_post['desc']:
-            # REPOST POST
-            repost_post(selected_post, reddit)
-            # PRINT CONTENTS OF REPOST
-            print(selected_post['desc'])
+            user_file_name = input("Name post file? [Y]es/[N]o\n")
+            if user_file_name.lower() == 'y':  # GET NAME FOR FILE IF USER CHOOSES YES
+                save_file_name = input("Enter name for file: ")
+
+                # CREATE A MARKDOWN FILE WITH NAME SPECIFIED BY USER
+                filename = save_file_name + ".md"
+                with open(filename, "w") as f:
+                    # WRITE POST TO MD FILE
+                    f.write(selected_post['title'] + "\n\n")
+                    f.write(selected_post['desc'] + "\n\n")
+                    f.write(selected_post['url'] + "\n\n")
+
+                try:
+                    print(f"Saving post to current directory ({os.getcwd()}\\{filename})")
+                except:
+                    print(f"Failed to save post to {os.getcwd()}\\{filename}")
+        
+            elif user_file_name.lower() == 'n':
+                # CREATE A MARKDOWN FILE WITH POST ID
+                filename = selected_post['id'] + ".md"
+                with open(filename, "w") as f:
+                    # WRITE POST TO MD FILE
+                    f.write(selected_post['title'] + "\n\n")
+                    f.write(selected_post['desc'] + "\n\n")
+                    f.write(selected_post['url'] + "\n\n")
+            else:
+                print("Invalid input.")
         else:
-            # REPOST URL POST
-            repost_post(selected_post, reddit)
-            # PRINT CONTENTS OF REPOST
-            print(selected_post['url'])
+            user_file_name = input("Name post file? [Y]es/[N]o\n")
+            if user_file_name.lower() == 'y':  # GET NAME FOR FILE IF USER CHOOSES YES
+                save_file_name = input("Enter name for file: ")
+
+                # CREATE A MARKDOWN FILE WITH NAME SPECIFIED BY USER
+                filename = save_file_name + ".md"
+                with open(filename, "w") as f:
+                    # WRITE POST TO MD FILE
+                    f.write(selected_post['title'] + "\n\n")
+                    f.write(selected_post['desc'] + "\n\n")
+                    f.write(selected_post['url'] + "\n\n")
+
+                try:
+                    print(f"Saving post to current directory ({os.getcwd()})")
+                except:
+                    print(f"Failed to save post {filename} to {os.getcwd()}")
+        
+            elif user_file_name.lower() == 'n':
+                # CREATE A MARKDOWN FILE WITH POST ID
+                filename = selected_post['id'] + ".md"
+                with open(filename, "w") as f:
+                    # WRITE POST TO MD FILE
+                    f.write(selected_post['title'] + "\n\n")
+                    f.write(selected_post['desc'] + "\n\n")
+                    f.write(selected_post['url'] + "\n\n")
+            else:
+                print("Invalid input.")
+
+        repost = input("Repost post? [Y]es/[N]o\n")
+        if repost.lower() == 'y':
+            if selected_post['url'].endswith(('jpg', 'jpeg', 'png', 'gif')):
+                # REPOST IMAGE
+                repost_image(reddit, file_path)
+            
+            elif selected_post['desc']:
+                # REPOST POST
+                repost_post(selected_post, reddit)
+                # PRINT CONTENTS OF REPOST
+                print(selected_post['title'])
+                print(selected_post['desc'])
+                print(selected_post['url'])
+            
+            else:
+                # REPOST URL POST
+                repost_post(selected_post, reddit)
+                # PRINT CONTENTS OF REPOST
+                print(selected_post['title'])
+                print(selected_post['desc'])
+                print(selected_post['url'])
+
+    elif save_post_input.lower() == 'n':
+        repost = input("Repost post? [Y]es/[N]o\n")
+        if repost.lower() == 'y':
+            if selected_post['url'].endswith(('jpg', 'jpeg', 'png', 'gif')):
+                # REPOST IMAGE
+                repost_image(reddit, file_path)
+            
+            elif selected_post['desc']:
+                # REPOST POST
+                repost_post(selected_post, reddit)
+                # PRINT CONTENTS OF REPOST
+                print(selected_post['title'])
+                print(selected_post['desc'])
+                print(selected_post['url'])
+            
+            else:
+                # REPOST URL POST
+                repost_post(selected_post, reddit)
+                # PRINT CONTENTS OF REPOST
+                print(selected_post['title'])
+                print(selected_post['desc'])
+                print(selected_post['url'])
 
     view_another_post = input("View another post? [Y]es/[N]o\n")
     if view_another_post.lower() == 'y':
@@ -325,14 +476,6 @@ def repost_post(selected_post, r):
     # GET SUBREDDIT TO REPOST TO
     subreddit_name = input("Enter subreddit to repost to: ")  # ENTER A SUBREDDIT
     subreddit = r.subreddit(subreddit_name)
-
-    # CREATE A MARKDOWN FILE
-    filename = selected_post['id'] + ".md"
-    with open(filename, "w") as f:
-        # WRITE POST TO MD FILE
-        f.write(selected_post['title'] + "\n\n")
-        f.write(selected_post['desc'] + "\n\n")
-        f.write(selected_post['url'] + "\n\n")
 
     # GET NEW TITLE FOR REPOST
     new_title = input("Enter title for repost: ")
@@ -380,6 +523,52 @@ def repost_image(r, image_file_path=None):
             print("Error occurred while trying to repost.")
     except praw.exceptions.RedditAPIException:
         print("Insufficient permissions.")
+
+
+def save_all_posts(subreddit):
+    # create folder for subreddit if not exists
+    folder_name = subreddit.display_name
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+
+    posts_downloaded = 0
+
+    # download all posts
+    for post in subreddit.hot(limit=None):
+        # download file
+        try:
+            if post.url.endswith(('jpg', 'jpeg', 'png', 'gif')):
+                # DOWNLOAD IMAGE
+                response = requests.get(post.url)
+                mime_type = response.headers['content-type']
+
+                # GET FILE EXTENSION
+                file_extension = mimetypes.guess_extension(mime_type)
+                image_data = response.content
+
+                # GET PATH TO DOWNLOADED IMAGE
+                file_name = f'{post.id}' + file_extension
+                file_path = os.path.join(folder_name, file_name)
+
+                # WRITE IMAGE DATA TO IMAGE FILE FOR REPOST
+                with open(file_path, 'wb') as image_file:
+                    print(f'Downloading post: {post.title}')
+                    image_file.write(image_data)
+                    posts_downloaded += 1
+            else:
+                file_name = post.id + ".md"
+                file_path = os.path.join(folder_name, file_name)
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    print(f'Downloading post: {post.title} (ID: {post.id})')
+                    # WRITE POST TO MD FILE
+                    f.write(post.title + "\n\n")
+                    f.write(post.selftext + "\n\n")
+                    f.write(post.url + "\n\n")
+                    posts_downloaded += 1
+        except:
+            print(f"Error downloading {file_name}: ")
+
+    print(f'{posts_downloaded} posts downloaded to folder \{folder_name}')
 
 
 def get_current_date():

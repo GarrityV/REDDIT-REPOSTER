@@ -1,6 +1,8 @@
 # REDDIT-REPOSTER
-Simple repost bot for Reddit. Made for personal use. Anyone can use.
+Simple repost bot for Reddit.
 
-In `functions.py`, replace lines 12-14 with correct information
+Requires a reddit app. Go [**here**](https://www.reddit.com/prefs/apps), scroll all the way down, and create a new app.
+
+In `functions.py`, replace lines 15-17 with correct information
 
 Run `main.py` for program to function correctly
